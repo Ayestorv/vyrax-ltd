@@ -20,23 +20,8 @@ export const LiveChat = () => {
   const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const [sessionId, setSessionId] = useState<string>(() => {
-    // Try to get existing session from localStorage
-    const storedSession = localStorage.getItem('chatSession');
-    if (storedSession) {
-      try {
-        const parsedSession = JSON.parse(storedSession) as StoredChatSession;
-        if (parsedSession.sessionId) {
-          console.log(`LiveChat: Restored session ID: ${parsedSession.sessionId}`);
-          return parsedSession.sessionId;
-        }
-      } catch (error) {
-        console.error('Error parsing stored chat session:', error);
-      }
-    }
-
-    // Create a new session ID if none exists
+    // For SSR safety, create a simple ID during server rendering
     const id = `session_${Date.now()}_${Math.random().toString(36).slice(2)}`;
-    console.log(`LiveChat initialized with new session ID: ${id}`);
     return id;
   });
   
@@ -57,44 +42,59 @@ export const LiveChat = () => {
   // Track already seen message IDs to prevent duplicates
   const [seenMessageIds, setSeenMessageIds] = useState<Set<string>>(new Set());
 
-  // Load stored chat session on mount
+  // Client-side initialization - ensure this only runs in the browser
   useEffect(() => {
-    const loadStoredSession = () => {
+    // Initialize session from localStorage if available
+    const initializeFromLocalStorage = () => {
       const storedSession = localStorage.getItem('chatSession');
-      if (!storedSession) return;
-
-      try {
-        const parsedSession = JSON.parse(storedSession) as StoredChatSession;
-        
-        // Restore user info
-        if (parsedSession.userInfo) {
-          setUserName(parsedSession.userInfo.name || '');
-          setUserEmail(parsedSession.userInfo.email || '');
-          setUserPhone(parsedSession.userInfo.phone || '');
-          setUserInfoSubmitted(parsedSession.userInfoSubmitted || false);
-        }
-        
-        // Restore messages
-        if (parsedSession.messages && parsedSession.messages.length > 0) {
-          // Convert string timestamps back to Date objects
-          const restoredMessages = parsedSession.messages.map(msg => ({
-            ...msg,
-            timestamp: new Date(msg.timestamp)
-          }));
+      if (storedSession) {
+        try {
+          const parsedSession = JSON.parse(storedSession) as StoredChatSession;
           
-          setMessages(restoredMessages);
-          console.log(`LiveChat: Restored ${restoredMessages.length} messages from storage`);
+          // Restore session ID
+          if (parsedSession.sessionId) {
+            console.log(`LiveChat: Restored session ID: ${parsedSession.sessionId}`);
+            setSessionId(parsedSession.sessionId);
+          }
+          
+          // Restore user info
+          if (parsedSession.userInfo) {
+            setUserName(parsedSession.userInfo.name || '');
+            setUserEmail(parsedSession.userInfo.email || '');
+            setUserPhone(parsedSession.userInfo.phone || '');
+            setUserInfoSubmitted(parsedSession.userInfoSubmitted || false);
+          }
+          
+          // Restore messages
+          if (parsedSession.messages && parsedSession.messages.length > 0) {
+            // Convert string timestamps back to Date objects
+            const restoredMessages = parsedSession.messages.map(msg => ({
+              ...msg,
+              timestamp: new Date(msg.timestamp)
+            }));
+            
+            setMessages(restoredMessages);
+            console.log(`LiveChat: Restored ${restoredMessages.length} messages from storage`);
+          }
+        } catch (error) {
+          console.error('Error parsing stored chat session:', error);
         }
-      } catch (error) {
-        console.error('Error restoring chat session:', error);
+      } else {
+        // No need to log here as this creates a React hydration warning with SSR
       }
     };
     
-    loadStoredSession();
-  }, []);
+    // Only run in browser environment
+    if (typeof window !== 'undefined') {
+      initializeFromLocalStorage();
+    }
+  }, []); // Empty dependency array means this runs once on mount
 
   // Save session to localStorage when it changes
   useEffect(() => {
+    // Check if window is available (browser environment)
+    if (typeof window === 'undefined') return;
+    
     // Don't save if we haven't submitted user info yet or if there's only initial greeting
     if (!userInfoSubmitted && messages.length <= 1) return;
     
@@ -142,7 +142,11 @@ export const LiveChat = () => {
   
   // Clear chat history
   const clearChat = () => {
-    localStorage.removeItem('chatSession');
+    // Check if window is available (browser environment)
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('chatSession');
+    }
+    
     setSessionId(`session_${Date.now()}_${Math.random().toString(36).slice(2)}`);
     setUserName('');
     setUserEmail('');
