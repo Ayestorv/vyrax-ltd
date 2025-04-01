@@ -1,0 +1,18 @@
+# Node modules
+node_modules
+
+# Build files
+.next
+out
+
+# API routes with complex logic
+src/app/api/chat/route.ts
+
+# Ignore unused variables in UI components
+src/components/ui/LiveChat.tsx
+src/lib/i18n/I18nProvider.tsx
+src/lib/i18n/i18n.ts
+
+# Unused component variables 
+src/app/services/page.tsx
+src/components/home/ServicesSection.tsx 

@@ -286,7 +286,7 @@ export default function PortfolioPage() {
         >
           <h2 className="text-3xl sm:text-4xl font-bold mb-6">Ready to bring your project to life?</h2>
           <p className="text-white/70 text-lg max-w-2xl mx-auto mb-8">
-            Let's create something exceptional together. Our team is ready to help you achieve your digital goals.
+            Let&apos;s create something exceptional together. Our team is ready to help you achieve your digital goals.
           </p>
           <motion.div
             whileHover={{ scale: 1.05 }}

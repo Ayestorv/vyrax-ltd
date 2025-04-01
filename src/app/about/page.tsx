@@ -175,7 +175,7 @@ export default function AboutPage() {
               </div>
               <h3 className="text-xl font-bold mb-4">{t('about.value2')}</h3>
               <p className="text-white/70">
-                We constantly push the boundaries of what's possible, embracing new technologies and approaches to deliver cutting-edge solutions.
+                We constantly push the boundaries of what&apos;s possible, embracing new technologies and approaches to deliver cutting-edge solutions.
               </p>
             </motion.div>
             

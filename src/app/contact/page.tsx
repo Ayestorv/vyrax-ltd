@@ -34,7 +34,7 @@ export default function ContactPage() {
             <div className="w-20 h-1 bg-white rounded-full mb-8"></div>
             
             <p className="text-white/70 text-lg mb-10 max-w-md">
-              {t('contact.subtitle')}. Let's discuss how we can help you achieve your digital goals.
+              {t('contact.subtitle')}. Let&apos;s discuss how we can help you achieve your digital goals.
             </p>
             
             <div className="space-y-8 mb-12">
