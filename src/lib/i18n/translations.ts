@@ -268,7 +268,20 @@ export const translations = {
       autoResponse: 'Thanks for your message! Our team will respond shortly.',
       error: 'Sorry, there was an error sending your message. Please try again.',
       open: 'Open chat',
-      close: 'Close chat'
+      close: 'Close chat',
+      userInfoTitle: 'Before we start',
+      userInfoSubtitle: 'Please provide your contact information',
+      name: 'Your Name',
+      email: 'Email Address',
+      phone: 'Phone Number',
+      submit: 'Start Chat',
+      nameRequired: 'Name is required',
+      emailRequired: 'Email is required',
+      emailInvalid: 'Invalid email address',
+      phoneRequired: 'Phone number is required',
+      phoneInvalid: 'Invalid phone number',
+      welcomeMessage: 'How can we help you today?',
+      newChat: 'Start New Chat'
     }
   },
   es: {
@@ -540,7 +553,20 @@ export const translations = {
       autoResponse: 'Gracias por tu mensaje. Nuestro equipo responderá pronto.',
       error: 'Lo sentimos, hubo un error al enviar tu mensaje. Por favor, inténtalo de nuevo.',
       open: 'Abrir chat',
-      close: 'Cerrar chat'
+      close: 'Cerrar chat',
+      userInfoTitle: 'Antes de comenzar',
+      userInfoSubtitle: 'Por favor proporciona tu información de contacto',
+      name: 'Tu Nombre',
+      email: 'Dirección de Email',
+      phone: 'Número de Teléfono',
+      submit: 'Iniciar Chat',
+      nameRequired: 'El nombre es obligatorio',
+      emailRequired: 'El email es obligatorio',
+      emailInvalid: 'Dirección de email inválida',
+      phoneRequired: 'El número de teléfono es obligatorio',
+      phoneInvalid: 'Número de teléfono inválido',
+      welcomeMessage: '¿Cómo podemos ayudarte hoy?',
+      newChat: 'Iniciar Nuevo Chat'
     }
   }
 }; 

@@ -580,8 +580,8 @@ export async function GET(req: NextRequest) {
  */
 async function handleLiveChatMessage(body: any) {
   try {
-    // Expecting both message and sessionId in the payload
-    const { message, sessionId } = body;
+    // Expecting message, sessionId, and user info in the payload
+    const { message, sessionId, userInfo, userName } = body;
     
     if (!message || !sessionId) {
       return NextResponse.json({ error: 'Message and sessionId are required' }, { status: 400 });
@@ -595,8 +595,27 @@ async function handleLiveChatMessage(body: any) {
     // Log the complete session ID and short ticket ID for debugging
     console.log(`LiveChat message received - full sessionId: ${sessionId}, shortTicketId: ${shortTicketId}`);
     
-    // Format message for Telegram, including the FULL session ID in the callback data
-    const telegramMessage = `🎫 New Live Chat Ticket #${shortTicketId}\n⏰ ${timestamp}\n\n${message}\n\n💬 Reply directly to this message to respond to the customer.`;
+    // Format message for Telegram differently based on whether this is the initial message or a follow-up
+    let telegramMessage = '';
+    
+    if (userInfo) {
+      // Initial message with user info - use the "New Live Chat Ticket" format
+      telegramMessage = `🎫 New Live Chat Ticket #${shortTicketId}\n⏰ ${timestamp}\n`;
+      
+      // Add user information
+      telegramMessage += `\n👤 User Info:\n`;
+      if (userInfo.name) telegramMessage += `Name: ${userInfo.name}\n`;
+      if (userInfo.email) telegramMessage += `Email: ${userInfo.email}\n`;
+      if (userInfo.phone) telegramMessage += `Phone: ${userInfo.phone}\n`;
+    } else {
+      // Follow-up message - use the "Reply from" format
+      // Use the userName provided from the client for follow-up messages
+      const displayName = userName || "Customer";
+      telegramMessage = `💬 Reply from ${displayName} for ticket #${shortTicketId}\n⏰ ${timestamp}\n`;
+    }
+    
+    // Add the actual message
+    telegramMessage += `\n${message}\n\n💬 Reply directly to this message to respond to the customer.`;
     
     // Send message to Telegram admin
     const response = await fetch(`${TELEGRAM_API}/sendMessage`, {
@@ -604,17 +623,7 @@ async function handleLiveChatMessage(body: any) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         chat_id: TELEGRAM_ADMIN_ID,
-        text: telegramMessage,
-        reply_markup: {
-          inline_keyboard: [
-            [
-              { 
-                text: "✉️ Reply to this ticket", 
-                callback_data: `ticket_${sessionId}`
-              }
-            ]
-          ]
-        }
+        text: telegramMessage
       }),
     });
     
