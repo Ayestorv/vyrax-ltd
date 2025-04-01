@@ -581,7 +581,7 @@ export async function GET(req: NextRequest) {
 async function handleLiveChatMessage(body: any) {
   try {
     // Expecting message, sessionId, and user info in the payload
-    const { message, sessionId, userInfo, userName } = body;
+    const { message, sessionId, userInfo, userName, isContactForm } = body;
     
     if (!message || !sessionId) {
       return NextResponse.json({ error: 'Message and sessionId are required' }, { status: 400 });
@@ -593,13 +593,26 @@ async function handleLiveChatMessage(body: any) {
     const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     
     // Log the complete session ID and short ticket ID for debugging
-    console.log(`LiveChat message received - full sessionId: ${sessionId}, shortTicketId: ${shortTicketId}`);
+    console.log(`Message received - full sessionId: ${sessionId}, shortTicketId: ${shortTicketId}, isContactForm: ${isContactForm}`);
     
-    // Format message for Telegram differently based on whether this is the initial message or a follow-up
+    // Format message for Telegram differently based on message type
     let telegramMessage = '';
     
-    if (userInfo) {
-      // Initial message with user info - use the "New Live Chat Ticket" format
+    if (isContactForm) {
+      // Contact form submission - use a different format
+      telegramMessage = `📝 New Contact Form Submission #${shortTicketId}\n⏰ ${timestamp}\n`;
+      
+      // Add user information
+      telegramMessage += `\n👤 Contact Information:\n`;
+      if (userInfo?.name) telegramMessage += `Name: ${userInfo.name}\n`;
+      if (userInfo?.email) telegramMessage += `Email: ${userInfo.email}\n`;
+      if (userInfo?.phone) telegramMessage += `Phone: ${userInfo.phone}\n`;
+      
+      // Add the message with a clear section header
+      telegramMessage += `\n📄 Message:\n${message}`;
+    } 
+    else if (userInfo) {
+      // Initial live chat message with user info
       telegramMessage = `🎫 New Live Chat Ticket #${shortTicketId}\n⏰ ${timestamp}\n`;
       
       // Add user information
@@ -607,15 +620,19 @@ async function handleLiveChatMessage(body: any) {
       if (userInfo.name) telegramMessage += `Name: ${userInfo.name}\n`;
       if (userInfo.email) telegramMessage += `Email: ${userInfo.email}\n`;
       if (userInfo.phone) telegramMessage += `Phone: ${userInfo.phone}\n`;
-    } else {
-      // Follow-up message - use the "Reply from" format
+      
+      // Add the message
+      telegramMessage += `\n${message}\n\n💬 Reply directly to this message to respond to the customer.`;
+    } 
+    else {
+      // Follow-up live chat message
       // Use the userName provided from the client for follow-up messages
       const displayName = userName || "Customer";
       telegramMessage = `💬 Reply from ${displayName} for ticket #${shortTicketId}\n⏰ ${timestamp}\n`;
+      
+      // Add the message
+      telegramMessage += `\n${message}\n\n💬 Reply directly to this message to respond to the customer.`;
     }
-    
-    // Add the actual message
-    telegramMessage += `\n${message}\n\n💬 Reply directly to this message to respond to the customer.`;
     
     // Send message to Telegram admin
     const response = await fetch(`${TELEGRAM_API}/sendMessage`, {
@@ -628,7 +645,7 @@ async function handleLiveChatMessage(body: any) {
     });
     
     // Log the session ID for debugging
-    console.log(`Sent ticket to Telegram admin with complete sessionId: ${sessionId}`);
+    console.log(`Sent to Telegram admin with complete sessionId: ${sessionId}`);
     
     const result = await response.json();
     
@@ -639,7 +656,7 @@ async function handleLiveChatMessage(body: any) {
     
     return NextResponse.json({ success: true, messageId: result.result?.message_id });
   } catch (error) {
-    console.error('Error in livechat API:', error);
+    console.error('Error in API:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

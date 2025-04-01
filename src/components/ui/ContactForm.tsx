@@ -57,9 +57,7 @@ export const ContactForm = () => {
             ? t('contact.validation.emailInvalid') 
             : '';
       case 'phone':
-        return value.trim() !== '' && !/^[+]?[(]?[0-9]{3}[)]?[-\s.]?[0-9]{3}[-\s.]?[0-9]{4,6}$/im.test(value)
-          ? t('contact.validation.phoneInvalid')
-          : '';
+        return '';
       case 'message':
         return value.trim() === '' ? t('contact.validation.messageRequired') : '';
       default:
@@ -96,21 +94,31 @@ export const ContactForm = () => {
     setSubmitStatus('idle');
     
     try {
-      // Here you would send the form data to your Telegram webhook
-      // This is a placeholder for the actual implementation
-      // const response = await fetch('YOUR_TELEGRAM_WEBHOOK_URL', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({
-      //     name: form.name.value,
-      //     email: form.email.value,
-      //     phone: form.phone.value,
-      //     message: form.message.value,
-      //   }),
-      // });
+      // Create a unique ID for this form submission
+      const formId = `form_${Date.now()}_${Math.random().toString(36).slice(2)}`;
       
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Send form data to the same API endpoint used by LiveChat
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          // Use formId as sessionId to track the conversation
+          sessionId: formId,
+          // Send as a contact form submission with special formatting
+          isContactForm: true,
+          // Include all form fields
+          message: form.message.value,
+          userInfo: {
+            name: form.name.value,
+            email: form.email.value,
+            phone: form.phone.value || 'Not provided'
+          }
+        }),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to submit form');
+      }
       
       // Reset form on success
       setForm({
@@ -199,7 +207,7 @@ export const ContactForm = () => {
         {/* Phone Field */}
         <div>
           <label htmlFor="phone" className="block text-white mb-1">
-            {t('contact.phone')}
+            {t('contact.phone')} <span className="text-white/50 text-xs">(Optional)</span>
           </label>
           <input 
             type="tel"
